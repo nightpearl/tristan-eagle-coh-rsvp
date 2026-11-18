@@ -125,6 +125,69 @@
   .program strong { display: block; font-weight: 600; }
   .program span { color: var(--muted); font-size: 15px; }
 
+  .head-grid {
+    display: grid;
+    grid-template-columns: 132px 1fr;
+    gap: 28px;
+    align-items: center;
+  }
+  .head-text { min-width: 0; }
+  .badge { width: 132px; height: auto; filter: drop-shadow(0 6px 14px rgba(0,0,0,0.35)); }
+  @media (max-width: 560px) {
+    .head-grid { grid-template-columns: 1fr; gap: 20px; }
+    .badge { width: 96px; }
+  }
+
+  .photo { margin: 0; }
+  .photo img, .photo-ph {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 7;
+    border-radius: 6px;
+    object-fit: cover;
+  }
+  .photo-ph {
+    display: grid;
+    place-items: center;
+    background:
+      repeating-linear-gradient(135deg, transparent 0 14px, var(--line) 14px 15px),
+      var(--surface);
+    border: 2px dashed var(--line);
+    color: var(--muted);
+    font: 600 14px/1 var(--body);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 16px;
+  }
+  @media (max-width: 480px) { .photo img, .photo-ph { aspect-ratio: 16 / 9; } }
+
+  .program li.feature {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    margin: 10px 0;
+    padding: 26px 24px 24px;
+    background: var(--navy);
+    color: var(--on-navy);
+    border: 0;
+    border-left: 6px solid var(--gold);
+    border-radius: 6px;
+  }
+  .program li.feature + li { border-top: 0; }
+  .program li.feature time { font-size: 24px; }
+  .program li.feature strong {
+    font: 700 clamp(30px, 6.5vw, 42px)/1 var(--display);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin: 4px 0 8px;
+    text-wrap: balance;
+  }
+  .program li.feature span { color: var(--on-navy); opacity: 0.85; font-size: 16px; }
+  .program li.feature .stars { color: var(--gold); opacity: 1; letter-spacing: 0.4em; font-size: 14px; }
+  @media (prefers-color-scheme: dark) {
+    .program li.feature { background: var(--surface); border: 1px solid var(--line); border-left: 6px solid var(--gold); }
+  }
+
   .card {
     background: var(--surface);
     border: 1px solid var(--line);
@@ -309,7 +372,9 @@
 </head>
 <body>
 <header class="band">
-  <div class="wrap">
+  <div class="wrap head-grid">
+    <img class="badge" src="/eagle-badge.png" alt="Eagle Scout badge" width="400" height="494">
+    <div class="head-text">
     <p class="eyebrow">Scouting America · You're invited</p>
     <h1>Eagle Scout Court of Honor</h1>
     <p class="honoree">Celebrating Tristan Marcus Bond</p>
@@ -318,17 +383,33 @@
       <li><span class="k">Time</span><span class="v">1:00 – 3:00 PM</span></li>
       <li><span class="k">Place</span><span class="v"><a href="https://www.google.com/maps/search/?api=1&query=Devonshire+Theatre+Skokie+IL" target="_blank" rel="noopener">Skokie Devonshire Theatre</a></span></li>
     </ul>
+    </div>
   </div>
 </header>
 
 <main>
   <div class="wrap">
+    <figure class="photo">
+      <!-- PHOTO: replace this placeholder div with <img src="/tristan.jpg" alt="Tristan Marcus Bond"> -->
+      <div class="photo-ph" role="img" aria-label="Photo of Tristan coming soon">
+        <span>Photo of Tristan coming soon</span>
+      </div>
+    </figure>
+
     <section aria-labelledby="program-h">
       <h2 id="program-h">The afternoon</h2>
       <ol class="program">
         <li><time>1:00 PM</time><div><strong>Doors open</strong><span>Arrive, find a seat, and say hello.</span></div></li>
-        <li><time>1:30 PM</time><div><strong>Court of Honor ceremony</strong><span>Tristan receives the Eagle Scout rank.</span></div></li>
+        <li class="feature">
+          <time>1:30 PM</time>
+          <div>
+            <span class="stars" aria-hidden="true">★ ★ ★</span>
+            <strong>Eagle Scout Court of Honor</strong>
+            <span>The ceremony where Tristan is presented with the rank of Eagle Scout, Scouting's highest honor.</span>
+          </div>
+        </li>
         <li><time>2:30 PM</time><div><strong>Refreshments</strong><span>Stay to celebrate and congratulate him.</span></div></li>
+        <li><time>3:00 PM</time><div><strong>Celebration ends</strong><span>Thank you for being part of Tristan's day.</span></div></li>
       </ol>
     </section>
 
