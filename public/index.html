@@ -408,6 +408,19 @@
   .memories h2 { margin: 0; }
   .memories .lead { margin: 0; color: var(--muted); }
   .msg.ok { color: var(--ok); }
+  input[type="file"] { padding: 9px; cursor: pointer; }
+  input[type="file"]::file-selector-button {
+    font: 700 15px/1 var(--display);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-right: 12px;
+    padding: 9px 14px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+  }
   .mem-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
   .mem-list li {
     background: var(--surface);
@@ -558,6 +571,33 @@
       </div>
     </details>
 
+    <section class="memories" aria-labelledby="photo-h">
+      <h2 id="photo-h">Share Scouting photos</h2>
+      <p class="lead">Have photos of Tristan from campouts, service projects, or troop events, or from the Court of Honor itself? Upload them here. They go privately to the Bond family and aren't posted on this page.</p>
+      <form id="photoForm" class="card mem-form" novalidate>
+        <div class="field">
+          <label for="photoName">Your name</label>
+          <input id="photoName" name="photoName" autocomplete="name" required maxlength="80">
+        </div>
+        <div class="field">
+          <label for="photoFiles">Photos</label>
+          <input id="photoFiles" name="photoFiles" type="file" accept="image/*,.heic,.heif" multiple required>
+          <span class="hint">JPG, PNG, or iPhone photos, up to 25 MB each. Pick as many as you like.</span>
+        </div>
+        <div class="field">
+          <label for="photoCaption">What's in these photos? <span class="opt">(optional)</span></label>
+          <input id="photoCaption" name="photoCaption" maxlength="300" placeholder="e.g. Philmont trek, summer 2025">
+        </div>
+        <div class="hp" aria-hidden="true">
+          <label for="photoWebsite">Leave this empty</label>
+          <input id="photoWebsite" name="photoWebsite" tabindex="-1" autocomplete="off">
+        </div>
+        <p class="msg error" id="photoErr" role="alert" hidden></p>
+        <p class="msg ok" id="photoOk" role="status" hidden></p>
+        <button class="submit" id="photoBtn" type="submit">Upload photos</button>
+      </form>
+    </section>
+
     <section class="memories" aria-labelledby="mem-h">
       <h2 id="mem-h">Memory Book</h2>
       <p class="lead">Share a favorite Scouting memory with Tristan: a campout, a hike, a moment he made you proud. Everyone visiting this page can read the Memory Book.</p>
@@ -655,6 +695,53 @@
       .catch(function () { whoCount.textContent = 'List unavailable right now'; });
   }
   loadGuests();
+
+  // ---- Photo upload (one request per photo) ----
+  var photoForm = document.getElementById('photoForm');
+  var photoBtn = document.getElementById('photoBtn');
+  var photoErr = document.getElementById('photoErr');
+  var photoOk = document.getElementById('photoOk');
+  var MAX = 25 * 1024 * 1024;
+
+  photoForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    photoErr.hidden = true; photoOk.hidden = true;
+    var name = photoForm.photoName.value.trim();
+    var caption = photoForm.photoCaption.value.trim();
+    var files = Array.prototype.slice.call(photoForm.photoFiles.files || []);
+    function fail(t) { photoErr.textContent = t; photoErr.hidden = false; }
+    if (!name) return fail('Please add your name so we know who shared these.');
+    if (!files.length) return fail('Please choose at least one photo.');
+    var tooBig = files.filter(function (f) { return f.size > MAX; });
+    files = files.filter(function (f) { return f.size <= MAX; });
+    var done = 0, failed = tooBig.map(function (f) { return f.name; });
+    if (!files.length) return fail('Each photo needs to be under 25 MB.');
+
+    photoBtn.disabled = true;
+    function next(i) {
+      if (i >= files.length) {
+        photoBtn.disabled = false; photoBtn.textContent = 'Upload photos';
+        if (done) {
+          photoOk.textContent = 'Thank you! ' + done + (done === 1 ? ' photo' : ' photos') + ' sent to the Bond family.';
+          photoOk.hidden = false;
+          photoForm.photoFiles.value = '';
+        }
+        if (failed.length) fail('These didn’t upload: ' + failed.join(', ') + '. Please try them again.');
+        return;
+      }
+      photoBtn.textContent = 'Uploading ' + (i + 1) + ' of ' + files.length + '…';
+      var fd = new FormData();
+      fd.append('photo', files[i]);
+      fd.append('name', name);
+      fd.append('caption', caption);
+      fd.append('website', photoForm.photoWebsite.value);
+      fetch('/api/photos', { method: 'POST', body: fd })
+        .then(function (r) { if (r.ok) done++; else failed.push(files[i].name); })
+        .catch(function () { failed.push(files[i].name); })
+        .finally(function () { next(i + 1); });
+    }
+    next(0);
+  });
 
   // ---- Memory Book ----
   var memForm = document.getElementById('memForm');
