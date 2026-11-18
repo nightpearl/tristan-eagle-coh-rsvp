@@ -404,6 +404,36 @@
   }
   .prog-link.is-soon { cursor: default; }
 
+  .memories { display: grid; gap: 18px; }
+  .memories h2 { margin: 0; }
+  .memories .lead { margin: 0; color: var(--muted); }
+  .msg.ok { color: var(--ok); }
+  .mem-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+  .mem-list li {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 18px 20px 16px;
+    position: relative;
+  }
+  .mem-list li::before {
+    content: "\201C";
+    position: absolute;
+    top: 2px; left: 14px;
+    font: 700 44px/1 var(--display);
+    color: var(--gold);
+    opacity: 0.5;
+  }
+  .mem-list blockquote {
+    margin: 0 0 10px;
+    padding-left: 22px;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+  }
+  .mem-list .by { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; padding-left: 22px; }
+  .mem-list .by strong { font-weight: 600; }
+  .mem-list time { font-size: 13px; color: var(--muted); }
+
   footer { color: var(--muted); font-size: 14px; }
   footer p { margin: 0; }
   @media (prefers-reduced-motion: no-preference) {
@@ -528,6 +558,39 @@
       </div>
     </details>
 
+    <section class="memories" aria-labelledby="mem-h">
+      <h2 id="mem-h">Memory Book</h2>
+      <p class="lead">Share a favorite Scouting memory with Tristan: a campout, a hike, a moment he made you proud. Everyone visiting this page can read the Memory Book.</p>
+      <form id="memForm" class="card mem-form" novalidate>
+        <div class="field">
+          <label for="memName">Your name</label>
+          <input id="memName" name="memName" autocomplete="name" required maxlength="80">
+        </div>
+        <fieldset class="field">
+          <legend>I know Tristan as a… <span class="opt">(optional)</span></legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" id="mrel-scout" name="mrel" value="Scout"><span>Scout</span></label>
+            <label class="choice"><input type="radio" id="mrel-family" name="mrel" value="Family"><span>Family</span></label>
+            <label class="choice"><input type="radio" id="mrel-friend" name="mrel" value="Friend"><span>Friend</span></label>
+          </div>
+        </fieldset>
+        <div class="field">
+          <label for="memText">Your Scouting memory</label>
+          <textarea id="memText" name="memText" maxlength="1000" required></textarea>
+          <span class="hint"><span id="memLeft">1000</span> characters left</span>
+        </div>
+        <div class="hp" aria-hidden="true">
+          <label for="memWebsite">Leave this empty</label>
+          <input id="memWebsite" name="memWebsite" tabindex="-1" autocomplete="off">
+        </div>
+        <p class="msg error" id="memErr" role="alert" hidden></p>
+        <p class="msg ok" id="memOk" role="status" hidden>Thank you. Your memory is in the book.</p>
+        <button class="submit" id="memBtn" type="submit">Add to the Memory Book</button>
+      </form>
+      <ul class="mem-list" id="memList"></ul>
+      <p class="empty" id="memEmpty">No memories yet. Be the first to add one.</p>
+    </section>
+
     <footer>
       <p>Questions? Reach out to the Bond family directly.</p>
     </footer>
@@ -592,6 +655,72 @@
       .catch(function () { whoCount.textContent = 'List unavailable right now'; });
   }
   loadGuests();
+
+  // ---- Memory Book ----
+  var memForm = document.getElementById('memForm');
+  var memList = document.getElementById('memList');
+  var memEmpty = document.getElementById('memEmpty');
+  var memErr = document.getElementById('memErr');
+  var memOk = document.getElementById('memOk');
+  var memBtn = document.getElementById('memBtn');
+  var memText = document.getElementById('memText');
+  var memLeft = document.getElementById('memLeft');
+
+  memText.addEventListener('input', function () { memLeft.textContent = 1000 - memText.value.length; });
+
+  function fmtDate(s) {
+    var d = new Date(String(s).replace(' ', 'T') + 'Z');
+    return isNaN(d) ? '' : d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+  }
+
+  function renderMemories(items) {
+    memList.textContent = '';
+    memEmpty.hidden = items.length > 0;
+    items.forEach(function (m) {
+      var li = document.createElement('li');
+      var q = document.createElement('blockquote'); q.textContent = m.memory;
+      var by = document.createElement('div'); by.className = 'by';
+      var who = document.createElement('strong'); who.textContent = m.name;
+      by.append(who);
+      if (m.relationship) { var t = document.createElement('span'); t.className = 'tag'; t.textContent = m.relationship; by.append(t); }
+      var when = document.createElement('time'); when.textContent = fmtDate(m.created_at); by.append(when);
+      li.append(q, by);
+      memList.append(li);
+    });
+  }
+
+  function loadMemories() {
+    fetch('/api/memories', { headers: { Accept: 'application/json' } })
+      .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
+      .then(function (d) { renderMemories(d.memories || []); })
+      .catch(function () { memEmpty.textContent = 'The Memory Book couldn’t load right now. Please refresh in a minute.'; memEmpty.hidden = false; });
+  }
+  loadMemories();
+
+  memForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    memErr.hidden = true; memOk.hidden = true;
+    var data = {
+      name: memForm.memName.value.trim(),
+      relationship: (memForm.querySelector('input[name="mrel"]:checked') || {}).value || '',
+      memory: memText.value.trim(),
+      website: memForm.memWebsite.value
+    };
+    function fail(t) { memErr.textContent = t; memErr.hidden = false; }
+    if (!data.name) return fail('Please add your name so Tristan knows who wrote this.');
+    if (data.memory.length < 3) return fail('Please write a memory to share.');
+    memBtn.disabled = true; memBtn.textContent = 'Adding…';
+    fetch('/api/memories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, body: j }; }); })
+      .then(function (res) {
+        if (!res.ok) throw new Error(res.body.error || 'Your memory didn’t save. Please try again.');
+        memText.value = ''; memLeft.textContent = '1000';
+        memOk.hidden = false;
+        loadMemories();
+      })
+      .catch(function (e2) { fail(e2.message || 'Your memory didn’t save. Please try again.'); })
+      .finally(function () { memBtn.disabled = false; memBtn.textContent = 'Add to the Memory Book'; });
+  });
 
   form.addEventListener('submit', function (e) {
     e.preventDefault();
