@@ -361,7 +361,6 @@
     display: flex;
     align-items: center;
     gap: 14px;
-    margin-top: 18px;
     padding: 14px 18px;
     background: var(--surface);
     border: 1px solid var(--line);
@@ -534,12 +533,6 @@
         <li><time>2:30 PM</time><div><strong>Refreshments</strong><span>Stay to celebrate and congratulate him.</span></div></li>
         <li><time>3:00 PM</time><div><strong>Celebration ends</strong><span>Thank you for being part of Tristan's day.</span></div></li>
       </ol>
-      <!-- PROGRAM: when ready, change this <span> to <a class="prog-link" href="PROGRAM_URL" target="_blank" rel="noopener"> and remove "is-soon" and the "Coming soon" badge -->
-      <span class="prog-link is-soon" aria-disabled="true">
-        <span class="prog-icon" aria-hidden="true"></span>
-        <span class="prog-text"><strong>Digital Program</strong><span>The full order of ceremony</span></span>
-        <span class="soon">Coming soon</span>
-      </span>
     </section>
 
     <div id="rsvp" class="rsvp-block anchor">
@@ -609,6 +602,13 @@
       </div>
     </details>
     </div>
+
+    <!-- PROGRAM: when ready, change this <span> to <a class="prog-link" href="PROGRAM_URL" target="_blank" rel="noopener"> and remove "is-soon" and the "Coming soon" badge -->
+    <span id="program" class="prog-link is-soon" aria-disabled="true">
+      <span class="prog-icon" aria-hidden="true"></span>
+      <span class="prog-text"><strong>Digital Program</strong><span>The full order of ceremony</span></span>
+      <span class="soon">Coming soon</span>
+    </span>
 
     <section id="photos" class="memories anchor" aria-labelledby="photo-h">
       <h2 id="photo-h">Share Scouting photos</h2>
