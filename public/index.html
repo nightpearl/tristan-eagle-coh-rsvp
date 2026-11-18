@@ -211,6 +211,93 @@
     text-underline-offset: 3px;
     cursor: pointer;
   }
+  textarea {
+    font: inherit;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 11px 12px;
+    width: 100%;
+    min-height: 96px;
+    resize: vertical;
+  }
+  textarea:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .opt { font-weight: 400; color: var(--muted); }
+  fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+  legend { font-weight: 600; font-size: 15px; padding: 0; margin-bottom: 6px; }
+  .choices { display: flex; flex-wrap: wrap; gap: 8px; }
+  .choice { position: relative; }
+  .choice input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .choice span {
+    display: inline-block;
+    font: 700 17px/1 var(--display);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 11px 18px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--bg);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .choice input:checked + span { background: var(--navy); border-color: var(--navy); color: var(--on-navy); }
+  @media (prefers-color-scheme: dark) {
+    .choice input:checked + span { background: var(--gold); border-color: var(--gold); color: #0d1424; }
+  }
+  .choice input:focus-visible + span { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+  .who {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  .who summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 18px 24px;
+  }
+  .who summary::-webkit-details-marker { display: none; }
+  .who summary:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; border-radius: 6px; }
+  .who summary h2 { margin: 0; display: inline-flex; align-items: center; gap: 10px; }
+  .who summary h2::before {
+    content: "";
+    width: 0; height: 0;
+    border-left: 7px solid var(--gold);
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    transition: transform 0.15s ease;
+  }
+  .who[open] summary h2::before { transform: rotate(90deg); }
+  .who .count { color: var(--muted); font-size: 15px; font-variant-numeric: tabular-nums; }
+  .who-body { padding: 0 24px 20px; }
+  .tally { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0 0 12px; padding: 0; list-style: none; font-size: 14px; color: var(--muted); }
+  .tally b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .guest-list { list-style: none; margin: 0; padding: 0; }
+  .guest-list li {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: baseline;
+    gap: 12px;
+    padding: 9px 0;
+    border-top: 1px solid var(--line);
+  }
+  .guest-list .name { min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
+  .tag {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .party { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 15px; min-width: 2.5em; text-align: right; }
+  .empty { margin: 0; color: var(--muted); }
+  @media (prefers-reduced-motion: reduce) { .who summary h2::before { transition: none; } }
+
   footer { color: var(--muted); font-size: 14px; }
   footer p { margin: 0; }
   @media (prefers-reduced-motion: no-preference) {
@@ -263,8 +350,16 @@
           <div class="field">
             <label for="email">Email</label>
             <input id="email" name="email" type="email" autocomplete="email" inputmode="email" required maxlength="120">
-            <span class="hint">Only used to contact you about this event.</span>
+            <span class="hint">Only used to contact you about this event. It isn't shown on the guest list.</span>
           </div>
+          <fieldset class="field">
+            <legend>I'm coming as a…</legend>
+            <div class="choices">
+              <label class="choice"><input type="radio" id="rel-scout" name="relationship" value="Scout"><span>Scout</span></label>
+              <label class="choice"><input type="radio" id="rel-family" name="relationship" value="Family"><span>Family</span></label>
+              <label class="choice"><input type="radio" id="rel-friend" name="relationship" value="Friend"><span>Friend</span></label>
+            </div>
+          </fieldset>
           <div class="field">
             <label for="guests">Number attending, including you</label>
             <div class="stepper">
@@ -272,6 +367,11 @@
               <input id="guests" name="guests" type="number" inputmode="numeric" min="1" max="20" value="1" required>
               <button type="button" id="plus" aria-label="One more">+</button>
             </div>
+          </div>
+          <div class="field">
+            <label for="message">Message for Tristan <span class="opt">(optional)</span></label>
+            <textarea id="message" name="message" maxlength="500"></textarea>
+            <span class="hint">Only the Bond family sees this.</span>
           </div>
           <div class="hp" aria-hidden="true">
             <label for="website">Leave this empty</label>
@@ -288,6 +388,15 @@
         <button class="link-btn" id="again" type="button">Update my RSVP</button>
       </div>
     </section>
+
+    <details class="who" id="who">
+      <summary><h2>Who's coming</h2><span class="count" id="whoCount">Loading…</span></summary>
+      <div class="who-body">
+        <ul class="tally" id="tally" hidden></ul>
+        <ul class="guest-list" id="guestList"></ul>
+        <p class="empty" id="whoEmpty">No RSVPs yet. Be the first to reply above.</p>
+      </div>
+    </details>
 
     <footer>
       <p>Questions? Reach out to the Bond family directly.</p>
@@ -313,6 +422,47 @@
 
   function showError(text) { err.textContent = text; err.hidden = false; }
 
+  var whoCount = document.getElementById('whoCount');
+  var guestList = document.getElementById('guestList');
+  var whoEmpty = document.getElementById('whoEmpty');
+  var tally = document.getElementById('tally');
+
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
+
+  function renderGuests(d) {
+    whoCount.textContent = d.total ? plural(d.total, 'person', 'people') + ' so far' : 'No replies yet';
+    guestList.textContent = '';
+    tally.textContent = '';
+    whoEmpty.hidden = d.guests.length > 0;
+    tally.hidden = d.guests.length === 0;
+    var by = { Scout: 0, Family: 0, Friend: 0 };
+    d.guests.forEach(function (g) {
+      if (by[g.relationship] !== undefined) by[g.relationship] += g.count;
+      var li = document.createElement('li');
+      var name = document.createElement('span'); name.className = 'name'; name.textContent = g.name;
+      var tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = g.relationship || '';
+      var party = document.createElement('span'); party.className = 'party';
+      party.textContent = g.count > 1 ? '+' + (g.count - 1) : '';
+      party.title = plural(g.count, 'person', 'people');
+      li.append(name, tag, party);
+      guestList.append(li);
+    });
+    [['Scouts', by.Scout], ['Family', by.Family], ['Friends', by.Friend]].forEach(function (p) {
+      var li = document.createElement('li');
+      var b = document.createElement('b'); b.textContent = p[1];
+      li.append(b, ' ' + p[0]);
+      tally.append(li);
+    });
+  }
+
+  function loadGuests() {
+    fetch('/api/rsvp', { headers: { Accept: 'application/json' } })
+      .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
+      .then(renderGuests)
+      .catch(function () { whoCount.textContent = 'List unavailable right now'; });
+  }
+  loadGuests();
+
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     err.hidden = true;
@@ -321,10 +471,13 @@
       last: form.last.value.trim(),
       email: form.email.value.trim(),
       guests: clamp(guests.value),
+      relationship: (form.querySelector('input[name="relationship"]:checked') || {}).value || '',
+      message: form.message.value.trim(),
       website: form.website.value
     };
     if (!data.first || !data.last) return showError('Please enter your first and last name.');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) return showError('Please enter a valid email address.');
+    if (!data.relationship) return showError('Please choose Scout, Family, or Friend.');
 
     btn.disabled = true; btn.textContent = 'Sending…';
     fetch('/api/rsvp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
@@ -336,6 +489,7 @@
           'Thanks, ' + data.first + '. We have ' + n + (n === 1 ? ' person' : ' people') +
           ' down for Tristan’s Court of Honor on December 19.' + (res.body.updated ? ' Your earlier RSVP was updated.' : '');
         formView.hidden = true; doneView.hidden = false;
+        loadGuests();
       })
       .catch(function (e2) { showError(e2.message || 'Your RSVP didn’t go through. Please try again.'); })
       .finally(function () { btn.disabled = false; btn.textContent = 'Send RSVP'; });
