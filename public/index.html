@@ -421,31 +421,72 @@
     color: var(--ink);
     cursor: pointer;
   }
-  .mem-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
-  .mem-list li {
+
+  .topnav {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 20;
     background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    padding: 18px 20px 16px;
-    position: relative;
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 2px 10px rgba(20, 33, 58, 0.06);
   }
-  .mem-list li::before {
-    content: "\201C";
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto;
+    height: env(safe-area-inset-top, 0px);
+    z-index: 21;
+    background: var(--surface);
+  }
+  .topnav .wrap {
+    display: flex;
+    justify-content: center;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .topnav .wrap::-webkit-scrollbar { display: none; }
+  .topnav a {
+    flex: none;
+    font: 700 16px/1 var(--display);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 17px 14px 14px;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+  }
+  .topnav a + a { border-left: 0; position: relative; }
+  .topnav a + a::before {
+    content: "";
     position: absolute;
-    top: 2px; left: 14px;
-    font: 700 44px/1 var(--display);
-    color: var(--gold);
-    opacity: 0.5;
+    left: 0; top: 50%;
+    width: 1px; height: 14px;
+    margin-top: -6px;
+    background: var(--line);
   }
-  .mem-list blockquote {
-    margin: 0 0 10px;
-    padding-left: 22px;
-    white-space: pre-line;
-    overflow-wrap: anywhere;
+  .topnav a:hover { color: var(--ink); }
+  .topnav a.active { color: var(--ink); border-bottom-color: var(--gold); }
+  .topnav a:focus-visible { outline: 3px solid var(--gold); outline-offset: -3px; }
+  @media (max-width: 400px) { .topnav a { padding-inline: 10px; font-size: 15px; letter-spacing: 0.06em; } }
+  .anchor { scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 64px); }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  .rsvp-block { display: grid; gap: 20px; }
+  /* Returning guests who already RSVP'd: photos and memories come first, RSVP moves to the end. */
+  body.returning .rsvp-block { order: 1; }
+  body.returning main footer { order: 2; }
+  body.returning .topnav .nav-rsvp { order: 1; }
+  body.returning .topnav .nav-rsvp::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 50%;
+    width: 1px; height: 14px;
+    margin-top: -6px;
+    background: var(--line);
   }
-  .mem-list .by { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; padding-left: 22px; }
-  .mem-list .by strong { font-weight: 600; }
-  .mem-list time { font-size: 13px; color: var(--muted); }
+  body.returning .topnav a[data-sec="timing"]::before { display: none; }
+  .topnav a { position: relative; }
 
   footer { color: var(--muted); font-size: 14px; }
   footer p { margin: 0; }
@@ -473,6 +514,15 @@
   </div>
 </header>
 
+<nav class="topnav" aria-label="Page sections">
+  <div class="wrap">
+    <a href="#rsvp" data-sec="rsvp" class="nav-rsvp">RSVP</a>
+    <a href="#timing" data-sec="timing">Timing</a>
+    <a href="#photos" data-sec="photos">Photos</a>
+    <a href="#memory-book" data-sec="memory-book">Memory Book</a>
+  </div>
+</nav>
+
 <main>
   <div class="wrap">
     <figure class="photo">
@@ -482,7 +532,7 @@
       </div>
     </figure>
 
-    <section aria-labelledby="program-h">
+    <section id="timing" class="anchor" aria-labelledby="program-h">
       <h2 id="program-h">The afternoon</h2>
       <ol class="program">
         <li><time>1:00 PM</time><div><strong>Doors open</strong><span>Arrive, find a seat, and say hello.</span></div></li>
@@ -505,6 +555,7 @@
       </span>
     </section>
 
+    <div id="rsvp" class="rsvp-block anchor">
     <section class="card" aria-labelledby="rsvp-h">
       <div id="formView">
         <h2 id="rsvp-h">RSVP</h2>
@@ -570,8 +621,9 @@
         <p class="empty" id="whoEmpty">No RSVPs yet. Be the first to reply above.</p>
       </div>
     </details>
+    </div>
 
-    <section class="memories" aria-labelledby="photo-h">
+    <section id="photos" class="memories anchor" aria-labelledby="photo-h">
       <h2 id="photo-h">Share Scouting photos</h2>
       <p class="lead">Have photos of Tristan from campouts, service projects, or troop events, or from the Court of Honor itself? Upload them here. They go privately to the Bond family and aren't posted on this page.</p>
       <form id="photoForm" class="card mem-form" novalidate>
@@ -598,9 +650,9 @@
       </form>
     </section>
 
-    <section class="memories" aria-labelledby="mem-h">
+    <section id="memory-book" class="memories anchor" aria-labelledby="mem-h">
       <h2 id="mem-h">Memory Book</h2>
-      <p class="lead">Share a favorite Scouting memory with Tristan: a campout, a hike, a moment he made you proud. Everyone visiting this page can read the Memory Book.</p>
+      <p class="lead">Share a favorite Scouting memory of Tristan: a campout, a hike, a moment he made you proud. Memories go privately to the Bond family and aren't posted on this page.</p>
       <form id="memForm" class="card mem-form" novalidate>
         <div class="field">
           <label for="memName">Your name</label>
@@ -624,11 +676,9 @@
           <input id="memWebsite" name="memWebsite" tabindex="-1" autocomplete="off">
         </div>
         <p class="msg error" id="memErr" role="alert" hidden></p>
-        <p class="msg ok" id="memOk" role="status" hidden>Thank you. Your memory is in the book.</p>
+        <p class="msg ok" id="memOk" role="status" hidden>Thank you. Your memory was sent to the Bond family. Feel free to add another.</p>
         <button class="submit" id="memBtn" type="submit">Add to the Memory Book</button>
       </form>
-      <ul class="mem-list" id="memList"></ul>
-      <p class="empty" id="memEmpty">No memories yet. Be the first to add one.</p>
     </section>
 
     <footer>
@@ -639,6 +689,30 @@
 
 <script>
 (function () {
+  // ---- Remember this guest in their own browser (name, relationship, RSVP) ----
+  var KEY = 'coh-guest';
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { saved = {}; }
+  function remember(patch) {
+    for (var k in patch) if (patch[k]) saved[k] = patch[k];
+    try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+  }
+  function setIfEmpty(id, v) { var el = document.getElementById(id); if (el && v && !el.value) el.value = v; }
+  function check(name, v) {
+    if (!v) return;
+    var el = document.querySelector('input[name="' + name + '"][value="' + v + '"]');
+    if (el && !document.querySelector('input[name="' + name + '"]:checked')) el.checked = true;
+  }
+  function prefill() {
+    setIfEmpty('memName', saved.name);
+    setIfEmpty('photoName', saved.name);
+    check('mrel', saved.relationship);
+    setIfEmpty('first', saved.first);
+    setIfEmpty('last', saved.last);
+    setIfEmpty('email', saved.email);
+    check('relationship', saved.relationship);
+  }
+
   var form = document.getElementById('rsvpForm');
   var guests = document.getElementById('guests');
   var err = document.getElementById('err');
@@ -654,6 +728,17 @@
   });
 
   function showError(text) { err.textContent = text; err.hidden = false; }
+
+  prefill();
+  if (saved.rsvp) {
+    document.body.classList.add('returning');
+    var rn = saved.rsvp.guests;
+    document.getElementById('doneText').textContent =
+      'Welcome back, ' + saved.rsvp.first + '. You\u2019re RSVP\u2019d with ' + plural(rn, 'person', 'people') +
+      ' for Tristan\u2019s Court of Honor on December 19.';
+    if (saved.rsvp.guests) guests.value = saved.rsvp.guests;
+    formView.hidden = true; doneView.hidden = false;
+  }
 
   var whoCount = document.getElementById('whoCount');
   var guestList = document.getElementById('guestList');
@@ -725,6 +810,8 @@
           photoOk.textContent = 'Thank you! ' + done + (done === 1 ? ' photo' : ' photos') + ' sent to the Bond family.';
           photoOk.hidden = false;
           photoForm.photoFiles.value = '';
+          photoForm.photoCaption.value = '';
+          remember({ name: name });
         }
         if (failed.length) fail('These didn’t upload: ' + failed.join(', ') + '. Please try them again.');
         return;
@@ -745,8 +832,6 @@
 
   // ---- Memory Book ----
   var memForm = document.getElementById('memForm');
-  var memList = document.getElementById('memList');
-  var memEmpty = document.getElementById('memEmpty');
   var memErr = document.getElementById('memErr');
   var memOk = document.getElementById('memOk');
   var memBtn = document.getElementById('memBtn');
@@ -755,34 +840,6 @@
 
   memText.addEventListener('input', function () { memLeft.textContent = 1000 - memText.value.length; });
 
-  function fmtDate(s) {
-    var d = new Date(String(s).replace(' ', 'T') + 'Z');
-    return isNaN(d) ? '' : d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
-  }
-
-  function renderMemories(items) {
-    memList.textContent = '';
-    memEmpty.hidden = items.length > 0;
-    items.forEach(function (m) {
-      var li = document.createElement('li');
-      var q = document.createElement('blockquote'); q.textContent = m.memory;
-      var by = document.createElement('div'); by.className = 'by';
-      var who = document.createElement('strong'); who.textContent = m.name;
-      by.append(who);
-      if (m.relationship) { var t = document.createElement('span'); t.className = 'tag'; t.textContent = m.relationship; by.append(t); }
-      var when = document.createElement('time'); when.textContent = fmtDate(m.created_at); by.append(when);
-      li.append(q, by);
-      memList.append(li);
-    });
-  }
-
-  function loadMemories() {
-    fetch('/api/memories', { headers: { Accept: 'application/json' } })
-      .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
-      .then(function (d) { renderMemories(d.memories || []); })
-      .catch(function () { memEmpty.textContent = 'The Memory Book couldn’t load right now. Please refresh in a minute.'; memEmpty.hidden = false; });
-  }
-  loadMemories();
 
   memForm.addEventListener('submit', function (e) {
     e.preventDefault();
@@ -803,7 +860,7 @@
         if (!res.ok) throw new Error(res.body.error || 'Your memory didn’t save. Please try again.');
         memText.value = ''; memLeft.textContent = '1000';
         memOk.hidden = false;
-        loadMemories();
+        remember({ name: data.name, relationship: data.relationship || saved.relationship });
       })
       .catch(function (e2) { fail(e2.message || 'Your memory didn’t save. Please try again.'); })
       .finally(function () { memBtn.disabled = false; memBtn.textContent = 'Add to the Memory Book'; });
@@ -835,11 +892,26 @@
           'Thanks, ' + data.first + '. We have ' + n + (n === 1 ? ' person' : ' people') +
           ' down for Tristan’s Court of Honor on December 19.' + (res.body.updated ? ' Your earlier RSVP was updated.' : '');
         formView.hidden = true; doneView.hidden = false;
+        remember({ name: data.first + ' ' + data.last, first: data.first, last: data.last, email: data.email,
+                   relationship: data.relationship, rsvp: { first: data.first, guests: n } });
+        prefill();
         loadGuests();
       })
       .catch(function (e2) { showError(e2.message || 'Your RSVP didn’t go through. Please try again.'); })
       .finally(function () { btn.disabled = false; btn.textContent = 'Send RSVP'; });
   });
+
+  // ---- Highlight the nav item for the section in view ----
+  var links = Array.prototype.slice.call(document.querySelectorAll('.topnav a'));
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (a) { a.classList.toggle('active', a.dataset.sec === en.target.id); });
+      });
+    }, { rootMargin: '-35% 0px -60% 0px' });
+    links.forEach(function (a) { var t = document.getElementById(a.dataset.sec); if (t) io.observe(t); });
+  }
 })();
 </script>
 </body>

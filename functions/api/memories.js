@@ -1,4 +1,5 @@
-// /api/memories — the Memory Book. GET lists visible memories (newest first); POST adds one.
+// /api/memories — the Memory Book. POST adds one memory. There is no public listing: memories are
+// private to the Bond family and read directly from the database.
 // Uses the D1 database bound as DB. To hide an entry: UPDATE memories SET hidden = 1 WHERE id = ?
 
 const json = (body, status = 200) =>
@@ -17,19 +18,6 @@ export function validateMemory(input) {
   if (!name) return { error: "Please add your name so Tristan knows who wrote this." };
   if (memory.length < 3) return { error: "Please write a memory to share." };
   return { value: { name, memory, relationship } };
-}
-
-export async function onRequestGet({ env }) {
-  try {
-    const { results } = await env.DB.prepare(
-      `SELECT id, name, relationship, memory, created_at
-       FROM memories WHERE hidden = 0 ORDER BY id DESC LIMIT 300`
-    ).all();
-    return json({ memories: results });
-  } catch (e) {
-    console.error("Memory list failed", e);
-    return json({ error: "Couldn't load the Memory Book." }, 500);
-  }
 }
 
 export async function onRequestPost({ request, env }) {
