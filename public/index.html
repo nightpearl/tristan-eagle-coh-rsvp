@@ -367,6 +367,43 @@
   .empty { margin: 0; color: var(--muted); }
   @media (prefers-reduced-motion: reduce) { .who summary h2::before { transition: none; } }
 
+  .prog-link {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 18px;
+    padding: 14px 18px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  a.prog-link:hover { border-color: var(--gold); }
+  a.prog-link:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .prog-icon {
+    flex: none;
+    width: 22px; height: 28px;
+    border: 2px solid var(--gold);
+    border-radius: 2px;
+    background: repeating-linear-gradient(to bottom, transparent 0 5px, var(--gold) 5px 6px) 4px 6px / 10px 16px no-repeat;
+  }
+  .prog-text { flex: 1; min-width: 0; display: grid; gap: 2px; }
+  .prog-text strong { font: 700 20px/1.1 var(--display); text-transform: uppercase; letter-spacing: 0.04em; }
+  .prog-text span { font-size: 14px; color: var(--muted); }
+  .soon {
+    flex: none;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    background: var(--gold-soft);
+    padding: 6px 10px;
+    border-radius: 999px;
+  }
+  .prog-link.is-soon { cursor: default; }
+
   footer { color: var(--muted); font-size: 14px; }
   footer p { margin: 0; }
   @media (prefers-reduced-motion: no-preference) {
@@ -417,6 +454,12 @@
         <li><time>2:30 PM</time><div><strong>Refreshments</strong><span>Stay to celebrate and congratulate him.</span></div></li>
         <li><time>3:00 PM</time><div><strong>Celebration ends</strong><span>Thank you for being part of Tristan's day.</span></div></li>
       </ol>
+      <!-- PROGRAM: when ready, change this <span> to <a class="prog-link" href="PROGRAM_URL" target="_blank" rel="noopener"> and remove "is-soon" and the "Coming soon" badge -->
+      <span class="prog-link is-soon" aria-disabled="true">
+        <span class="prog-icon" aria-hidden="true"></span>
+        <span class="prog-text"><strong>Digital Program</strong><span>The full order of ceremony</span></span>
+        <span class="soon">Coming soon</span>
+      </span>
     </section>
 
     <section class="card" aria-labelledby="rsvp-h">
