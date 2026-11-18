@@ -6,3 +6,7 @@ compatibility_date = "2026-06-01"
 binding = "DB"
 database_name = "tristan-eagle-coh-rsvp"
 database_id = "e5f45ead-ad3d-4003-8481-0d7eae713c9c"
+
+[[r2_buckets]]
+binding = "PHOTOS"
+bucket_name = "tristan-eagle-coh-photos"
