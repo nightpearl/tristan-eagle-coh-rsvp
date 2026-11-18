@@ -145,28 +145,13 @@
   }
 
   .photo { margin: 0; }
-  .photo img, .photo-ph {
+  .photo img {
     display: block;
     width: 100%;
-    aspect-ratio: 16 / 7;
+    height: auto;
     border-radius: 6px;
-    object-fit: cover;
+    box-shadow: 0 6px 20px rgba(20, 33, 58, 0.18);
   }
-  .photo-ph {
-    display: grid;
-    place-items: center;
-    background:
-      repeating-linear-gradient(135deg, transparent 0 14px, var(--line) 14px 15px),
-      var(--surface);
-    border: 2px dashed var(--line);
-    color: var(--muted);
-    font: 600 14px/1 var(--body);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    text-align: center;
-    padding: 16px;
-  }
-  @media (max-width: 480px) { .photo img, .photo-ph { aspect-ratio: 16 / 9; } }
 
   .program li.feature {
     grid-template-columns: 1fr;
@@ -526,10 +511,7 @@
 <main>
   <div class="wrap">
     <figure class="photo">
-      <!-- PHOTO: replace this placeholder div with <img src="/tristan.jpg" alt="Tristan Marcus Bond"> -->
-      <div class="photo-ph" role="img" aria-label="Photo of Tristan coming soon">
-        <span>Photo of Tristan coming soon</span>
-      </div>
+      <img src="/tristan-scouting-journey.jpg" width="1400" height="1045" alt="Tristan's Scouting Journey: a montage of photos of Tristan from Cub Scouts through Eagle, with family, troop friends, and at camp.">
     </figure>
 
     <section id="timing" class="anchor" aria-labelledby="program-h">
