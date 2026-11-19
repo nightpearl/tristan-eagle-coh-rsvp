@@ -28,26 +28,23 @@ export function validate(input) {
 
 const RELATIONSHIPS = ["Scout", "Family", "Friend"];
 
-// GET /api/rsvp — public guest list: names, relationship and party size only (no emails or messages).
+// GET /api/rsvp — public headcount only: total people and people per category. No names or emails.
 export async function onRequestGet({ env }) {
   try {
     const { results } = await env.DB.prepare(
-      `SELECT first_name, last_name, relationship, guests
-       FROM rsvps ORDER BY last_name COLLATE NOCASE, first_name COLLATE NOCASE`
+      `SELECT relationship, COUNT(*) AS replies, SUM(guests) AS people
+       FROM rsvps GROUP BY relationship`
     ).all();
-    const total = results.reduce((n, r) => n + r.guests, 0);
-    return json({
-      total,
-      replies: results.length,
-      guests: results.map((r) => ({
-        name: `${r.first_name} ${r.last_name}`,
-        relationship: r.relationship,
-        count: r.guests,
-      })),
-    });
+    const counts = { Scout: 0, Family: 0, Friend: 0 };
+    let total = 0;
+    for (const r of results) {
+      total += r.people;
+      if (r.relationship in counts) counts[r.relationship] += r.people;
+    }
+    return json({ total, counts });
   } catch (e) {
-    console.error("Guest list failed", e);
-    return json({ error: "Couldn't load the guest list." }, 500);
+    console.error("Headcount failed", e);
+    return json({ error: "Couldn't load the headcount." }, 500);
   }
 }
 
