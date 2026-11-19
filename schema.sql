@@ -6,6 +6,10 @@ CREATE TABLE IF NOT EXISTS rsvps (
   guests INTEGER NOT NULL CHECK (guests BETWEEN 1 AND 20),
   relationship TEXT,
   message TEXT,
+  n_scout INTEGER NOT NULL DEFAULT 0,   -- Scout / Leader
+  n_parent INTEGER NOT NULL DEFAULT 0,  -- Scout Parent
+  n_family INTEGER NOT NULL DEFAULT 0,
+  n_friend INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );

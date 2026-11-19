@@ -1,4 +1,4 @@
-// /api/rsvp — POST saves or updates one RSVP (keyed by email); GET returns the public guest list.
+// /api/rsvp — POST saves or updates one RSVP (keyed by email); GET returns the public headcount.
 // Uses the D1 database bound as DB.
 
 const json = (body, status = 200) =>
@@ -13,35 +13,44 @@ export function validate(input) {
   const first = String(input?.first ?? "").trim().slice(0, 60);
   const last = String(input?.last ?? "").trim().slice(0, 60);
   const email = String(input?.email ?? "").trim().toLowerCase().slice(0, 120);
-  const guests = Number.parseInt(input?.guests, 10);
+  const message = String(input?.message ?? "").trim().slice(0, 500) || null;
 
   if (!first || !last) return { error: "Please enter your first and last name." };
   if (!EMAIL_RE.test(email)) return { error: "Please enter a valid email address." };
-  if (!Number.isInteger(guests) || guests < 1 || guests > 20)
-    return { error: "Number attending must be between 1 and 20." };
-  const relationship = String(input?.relationship ?? "");
-  if (!RELATIONSHIPS.includes(relationship))
-    return { error: "Please choose Scout, Family, or Friend." };
-  const message = String(input?.message ?? "").trim().slice(0, 500) || null;
-  return { value: { first, last, email, guests, relationship, message } };
+
+  const party = {};
+  for (const c of CATEGORIES) {
+    const n = Number.parseInt(input?.party?.[c.key] ?? 0, 10);
+    if (!Number.isInteger(n) || n < 0 || n > 20) return { error: `${c.label} must be between 0 and 20.` };
+    party[c.key] = n;
+  }
+  const guests = CATEGORIES.reduce((t, c) => t + party[c.key], 0);
+  if (guests < 1) return { error: "Please add at least one person to your party." };
+  if (guests > 20) return { error: "Parties are limited to 20 people. For a larger group, send separate RSVPs." };
+  const relationship = CATEGORIES.filter((c) => party[c.key] > 0).map((c) => c.label).join(", ");
+  return { value: { first, last, email, guests, party, relationship, message } };
 }
 
-const RELATIONSHIPS = ["Scout", "Family", "Friend"];
+export const CATEGORIES = [
+  { key: "scout", label: "Scout / Leader", col: "n_scout" },
+  { key: "parent", label: "Scout Parent", col: "n_parent" },
+  { key: "family", label: "Family", col: "n_family" },
+  { key: "friend", label: "Friend", col: "n_friend" },
+];
 
 // GET /api/rsvp — public headcount only: total people and people per category. No names or emails.
 export async function onRequestGet({ env }) {
   try {
-    const { results } = await env.DB.prepare(
-      `SELECT relationship, COUNT(*) AS replies, SUM(guests) AS people
-       FROM rsvps GROUP BY relationship`
-    ).all();
-    const counts = { Scout: 0, Family: 0, Friend: 0 };
-    let total = 0;
-    for (const r of results) {
-      total += r.people;
-      if (r.relationship in counts) counts[r.relationship] += r.people;
-    }
-    return json({ total, counts });
+    const row = await env.DB.prepare(
+      `SELECT COALESCE(SUM(guests), 0) AS total,
+              COALESCE(SUM(n_scout), 0) AS scout, COALESCE(SUM(n_parent), 0) AS parent,
+              COALESCE(SUM(n_family), 0) AS family, COALESCE(SUM(n_friend), 0) AS friend
+       FROM rsvps`
+    ).first();
+    return json({
+      total: row.total,
+      counts: { scout: row.scout, parent: row.parent, family: row.family, friend: row.friend },
+    });
   } catch (e) {
     console.error("Headcount failed", e);
     return json({ error: "Couldn't load the headcount." }, 500);
@@ -68,17 +77,23 @@ export async function onRequestPost({ request, env }) {
       .first();
 
     await env.DB.prepare(
-      `INSERT INTO rsvps (first_name, last_name, email, guests, relationship, message)
-       VALUES (?, ?, ?, ?, ?, ?)
+      `INSERT INTO rsvps (first_name, last_name, email, guests, relationship, message,
+                          n_scout, n_parent, n_family, n_friend)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(email) DO UPDATE SET
          first_name   = excluded.first_name,
          last_name    = excluded.last_name,
          guests       = excluded.guests,
          relationship = excluded.relationship,
          message      = excluded.message,
+         n_scout      = excluded.n_scout,
+         n_parent     = excluded.n_parent,
+         n_family     = excluded.n_family,
+         n_friend     = excluded.n_friend,
          updated_at   = datetime('now')`
     )
-      .bind(value.first, value.last, value.email, value.guests, value.relationship, value.message)
+      .bind(value.first, value.last, value.email, value.guests, value.relationship, value.message,
+            value.party.scout, value.party.parent, value.party.family, value.party.friend)
       .run();
 
     return json({ ok: true, updated: Boolean(existing) });

@@ -8,7 +8,7 @@ const json = (body, status = 200) =>
     headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
   });
 
-const RELATIONSHIPS = ["Scout", "Family", "Friend"];
+const RELATIONSHIPS = ["Scout / Leader", "Scout Parent", "Family", "Friend"];
 
 export function validateMemory(input) {
   const name = String(input?.name ?? "").trim().slice(0, 80);
