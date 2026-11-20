@@ -266,6 +266,28 @@
   }
   .stepper input::-webkit-outer-spin-button,
   .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  /* Yes / No choice: two big cards; the rest of the form opens once one is picked. */
+  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+  @media (max-width: 480px) { .choices { grid-template-columns: 1fr; } }
+  .choice-opt { position: relative; display: block; width: 100%; cursor: pointer; font-weight: 400; }
+  .choice-opt input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .choice-opt span {
+    display: grid; gap: 4px; height: 100%;
+    padding: 16px 18px;
+    border: 2px solid var(--line);
+    border-radius: 6px;
+    background: var(--bg);
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .choice-opt strong { font: 700 22px/1.1 var(--display); text-transform: uppercase; letter-spacing: 0.02em; color: var(--ink); }
+  .choice-opt em { font-style: normal; font-size: 14px; color: var(--muted); }
+  .choice-opt:hover span { border-color: var(--gold); }
+  .choice-opt input:focus-visible + span { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .choice-opt input:checked + span { border-color: var(--gold); background: var(--navy); }
+  .choice-opt input:checked + span strong { color: var(--gold); }
+  .choice-opt input:checked + span em { color: var(--on-navy); opacity: 0.85; }
+  .rsvp-details { display: grid; gap: 18px; }
+  .rsvp-details:not([hidden]) { animation: rise 0.3s ease-out; }
   .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
   .submit {
     font: 700 19px/1 var(--display);
@@ -559,8 +581,16 @@
     <section class="card" aria-labelledby="rsvp-h">
       <div id="formView">
         <h2 id="rsvp-h">RSVP</h2>
-        <p class="lead">Please RSVP by <strong class="due">Friday, December 11</strong> so we can plan seating and refreshments. Already replied? Send it again with the same email to update your count.</p>
+        <p class="lead">Please RSVP by <strong class="due">Friday, December 11</strong> so we can plan seating and refreshments. Already replied? Send it again with the same email to change your answer.</p>
         <form id="rsvpForm" novalidate>
+          <fieldset class="field">
+            <legend>Will you be there?</legend>
+            <div class="choices">
+              <label class="choice-opt"><input type="radio" name="attending" value="yes"><span><strong>Yes, count me in!</strong><em>We’ll be there to celebrate</em></span></label>
+              <label class="choice-opt"><input type="radio" name="attending" value="no"><span><strong>Sorry, can’t make it</strong><em>We’ll be cheering from afar</em></span></label>
+            </div>
+          </fieldset>
+          <div class="rsvp-details" id="rsvpDetails" hidden>
           <div class="row">
             <div class="field">
               <label for="first">First name</label>
@@ -576,7 +606,7 @@
             <input id="email" name="email" type="email" autocomplete="email" inputmode="email" required maxlength="120">
             <span class="hint">Only used to contact you about this event. It isn't shown on this page.</span>
           </div>
-          <fieldset class="field">
+          <fieldset class="field" id="partyBlock">
             <legend>Who's coming in your party?</legend>
             <span class="hint">Count everyone, including you. For example, a parent bringing their Scout would add 1 Scout Parent and 1 Scout / Leader.</span>
             <ul class="party">
@@ -624,12 +654,13 @@
             <label for="website">Leave this empty</label>
             <input id="website" name="website" tabindex="-1" autocomplete="off">
           </div>
-          <p class="msg error" id="err" role="alert" hidden></p>
           <button class="submit" id="submitBtn" type="submit">Send RSVP</button>
+          </div>
+          <p class="msg error" id="err" role="alert" hidden></p>
         </form>
       </div>
       <div class="done" id="doneView" hidden>
-        <h3>You're on the list</h3>
+        <h3 id="doneHead">You're on the list</h3>
         <p id="doneText"></p>
         <p>Need to change it? Send the form again with the same email.</p>
         <button class="link-btn" id="again" type="button">Update my RSVP</button>
@@ -750,7 +781,24 @@
     setIfEmpty('last', saved.last);
     setIfEmpty('email', saved.email);
     if (saved.party) setParty(saved.party);
+    if (saved.rsvp && saved.rsvp.attending) {
+      var r = document.querySelector('input[name="attending"][value="' + saved.rsvp.attending + '"]');
+      if (r && !document.querySelector('input[name="attending"]:checked')) { r.checked = true; showChoice(r.value); }
+    }
   }
+
+  // ---- Yes / No first, then the rest of the form ----
+  var details = document.getElementById('rsvpDetails');
+  var partyBlock = document.getElementById('partyBlock');
+  function attendingChoice() { return (document.querySelector('input[name="attending"]:checked') || {}).value || ''; }
+  function showChoice(v) {
+    details.hidden = !v;
+    partyBlock.hidden = v !== 'yes';
+    var e = document.getElementById('err'); if (e) e.hidden = true;
+  }
+  document.querySelectorAll('input[name="attending"]').forEach(function (r) {
+    r.addEventListener('change', function () { showChoice(r.value); });
+  });
 
   var form = document.getElementById('rsvpForm');
   var partyInputs = Array.prototype.slice.call(document.querySelectorAll('.party input[data-cat]'));
@@ -791,10 +839,15 @@
   prefill();
   if (saved.rsvp) {
     document.body.classList.add('returning');
-    var rn = saved.rsvp.guests;
-    document.getElementById('doneText').textContent =
-      'Welcome back, ' + saved.rsvp.first + '. You\u2019re RSVP\u2019d with ' + plural(rn, 'person', 'people') +
-      ' for Tristan\u2019s Court of Honor on December 19.';
+    if (saved.rsvp.attending === 'no') {
+      document.getElementById('doneHead').textContent = 'Thanks for letting us know';
+      document.getElementById('doneText').textContent =
+        'Welcome back, ' + saved.rsvp.first + '. You told us you can\u2019t make it on December 19. If your plans change, update your RSVP below.';
+    } else {
+      document.getElementById('doneText').textContent =
+        'Welcome back, ' + saved.rsvp.first + '. You\u2019re RSVP\u2019d with ' + plural(saved.rsvp.guests, 'person', 'people') +
+        ' for Tristan\u2019s Court of Honor on December 19.';
+    }
     formView.hidden = true; doneView.hidden = false;
   }
 
@@ -904,7 +957,10 @@
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     err.hidden = true;
+    var attending = attendingChoice();
+    if (!attending) return showError('Please choose whether you can make it.');
     var data = {
+      attending: attending,
       first: form.first.value.trim(),
       last: form.last.value.trim(),
       email: form.email.value.trim(),
@@ -914,8 +970,9 @@
     };
     if (!data.first || !data.last) return showError('Please enter your first and last name.');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) return showError('Please enter a valid email address.');
+    if (attending === 'no') data.party = { scout: 0, parent: 0, family: 0, friend: 0 };
     var total = partySum(data.party);
-    if (total < 1) return showError('Please add at least one person to your party.');
+    if (attending === 'yes' && total < 1) return showError('Please add at least one person to your party.');
     if (total > 20) return showError('Parties are limited to 20 people. For a larger group, send separate RSVPs.');
 
     btn.disabled = true; btn.textContent = 'Sending…';
@@ -923,13 +980,23 @@
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, body: j }; }); })
       .then(function (res) {
         if (!res.ok) throw new Error(res.body.error || 'Your RSVP didn’t go through. Please try again.');
-        var n = total;
-        document.getElementById('doneText').textContent =
-          'Thanks, ' + data.first + '. We have ' + n + (n === 1 ? ' person' : ' people') +
-          ' down for Tristan’s Court of Honor on December 19.' + (res.body.updated ? ' Your earlier RSVP was updated.' : '');
+        var n = total, upd = res.body.updated ? ' Your earlier RSVP was updated.' : '';
+        if (attending === 'no') {
+          document.getElementById('doneHead').textContent = 'Thanks for letting us know';
+          document.getElementById('doneText').textContent =
+            'Thanks, ' + data.first + '. We’re sorry you can’t make it, and we’ll miss you on December 19.' + upd +
+            ' You can still share a photo or a memory for Tristan below.';
+        } else {
+          document.getElementById('doneHead').textContent = 'You’re on the list';
+          document.getElementById('doneText').textContent =
+            'Thanks, ' + data.first + '. We have ' + n + (n === 1 ? ' person' : ' people') +
+            ' down for Tristan’s Court of Honor on December 19.' + upd;
+        }
         formView.hidden = true; doneView.hidden = false;
         remember({ name: data.first + ' ' + data.last, first: data.first, last: data.last, email: data.email,
-                   party: data.party, relationship: soleCategory(data.party), rsvp: { first: data.first, guests: n } });
+                   party: attending === 'yes' ? data.party : null,
+                   relationship: attending === 'yes' ? soleCategory(data.party) : '',
+                   rsvp: { first: data.first, guests: n, attending: attending } });
         prefill();
         loadGuests();
       })

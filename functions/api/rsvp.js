@@ -1,4 +1,4 @@
-// /api/rsvp — POST saves or updates one RSVP (keyed by email); GET returns the public headcount.
+// /api/rsvp — POST saves or updates one RSVP, yes or no (keyed by email); GET returns the public headcount.
 // Uses the D1 database bound as DB.
 
 const json = (body, status = 200) =>
@@ -18,6 +18,15 @@ export function validate(input) {
   if (!first || !last) return { error: "Please enter your first and last name." };
   if (!EMAIL_RE.test(email)) return { error: "Please enter a valid email address." };
 
+  const att = input?.attending;
+  if (att !== "yes" && att !== "no") return { error: "Please choose whether you can make it." };
+  if (att === "no") {
+    // Declines are stored with attending = 0 and every count at 0. The guests column keeps its
+    // 1-20 check, so it holds 1 here; the headcount only adds up rows with attending = 1.
+    const party = { scout: 0, parent: 0, family: 0, friend: 0 };
+    return { value: { first, last, email, attending: 0, guests: 1, party, relationship: "Not attending", message } };
+  }
+
   const party = {};
   for (const c of CATEGORIES) {
     const n = Number.parseInt(input?.party?.[c.key] ?? 0, 10);
@@ -28,7 +37,7 @@ export function validate(input) {
   if (guests < 1) return { error: "Please add at least one person to your party." };
   if (guests > 20) return { error: "Parties are limited to 20 people. For a larger group, send separate RSVPs." };
   const relationship = CATEGORIES.filter((c) => party[c.key] > 0).map((c) => c.label).join(", ");
-  return { value: { first, last, email, guests, party, relationship, message } };
+  return { value: { first, last, email, attending: 1, guests, party, relationship, message } };
 }
 
 export const CATEGORIES = [
@@ -45,7 +54,7 @@ export async function onRequestGet({ env }) {
       `SELECT COALESCE(SUM(guests), 0) AS total,
               COALESCE(SUM(n_scout), 0) AS scout, COALESCE(SUM(n_parent), 0) AS parent,
               COALESCE(SUM(n_family), 0) AS family, COALESCE(SUM(n_friend), 0) AS friend
-       FROM rsvps`
+       FROM rsvps WHERE attending = 1`
     ).first();
     return json({
       total: row.total,
@@ -77,12 +86,13 @@ export async function onRequestPost({ request, env }) {
       .first();
 
     await env.DB.prepare(
-      `INSERT INTO rsvps (first_name, last_name, email, guests, relationship, message,
+      `INSERT INTO rsvps (first_name, last_name, email, attending, guests, relationship, message,
                           n_scout, n_parent, n_family, n_friend)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(email) DO UPDATE SET
          first_name   = excluded.first_name,
          last_name    = excluded.last_name,
+         attending    = excluded.attending,
          guests       = excluded.guests,
          relationship = excluded.relationship,
          message      = excluded.message,
@@ -92,7 +102,7 @@ export async function onRequestPost({ request, env }) {
          n_friend     = excluded.n_friend,
          updated_at   = datetime('now')`
     )
-      .bind(value.first, value.last, value.email, value.guests, value.relationship, value.message,
+      .bind(value.first, value.last, value.email, value.attending, value.guests, value.relationship, value.message,
             value.party.scout, value.party.parent, value.party.family, value.party.friend)
       .run();
 
