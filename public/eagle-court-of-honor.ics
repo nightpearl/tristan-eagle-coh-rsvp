@@ -1,0 +1,24 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Bond Family//Eagle Court of Honor//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:tristan-eagle-coh-20261219@tristan-eagle-coh-rsvp.pages.dev
+DTSTAMP:20261120T050000Z
+DTSTART:20261219T190000Z
+DTEND:20261219T210000Z
+SUMMARY:Tristan's Eagle Court of Honor
+LOCATION:Devonshire Cultural Center (Skokie Devonshire Theatre)\, 4400 Gree
+ nwood St\, Skokie\, IL 60076
+DESCRIPTION:Scout Troop 916's Eagle Court of Honor for Tristan Marcus Bond.
+ \nDoors 1:00 PM · Ceremony 1:30 PM · Refreshments 2:30 PM\nRSVP and deta
+ ils: https://bit.ly/tristaneaglecourt
+URL:https://bit.ly/tristaneaglecourt
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Tristan's Eagle Court of Honor
+TRIGGER:-PT2H
+END:VALARM
+END:VEVENT
+END:VCALENDAR

@@ -315,6 +315,21 @@
     color: var(--ok);
   }
   .done p { margin: 0 0 12px; }
+  .addcal { margin: 6px 0 18px; padding: 16px 0 0; border-top: 1px solid var(--line); }
+  .addcal h4 { font: 700 16px/1.2 var(--display); text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 10px; color: var(--ink); }
+  .addcal-links { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cal-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 9px 14px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--bg);
+    color: var(--ink);
+    font-weight: 600; font-size: 15px;
+    text-decoration: none;
+  }
+  .cal-btn:hover { border-color: var(--gold); }
+  .cal-btn svg { width: 16px; height: 16px; flex: none; color: var(--gold); }
   .link-btn {
     font: inherit;
     background: none;
@@ -662,6 +677,16 @@
       <div class="done" id="doneView" hidden>
         <h3 id="doneHead">You're on the list</h3>
         <p id="doneText"></p>
+        <div class="addcal" id="addCal" hidden>
+          <h4>Add it to your calendar</h4>
+          <div class="addcal-links">
+            <a class="cal-btn" href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=Tristan%27s%20Eagle%20Court%20of%20Honor&amp;dates=20261219T190000Z%2F20261219T210000Z&amp;details=Scout%20Troop%20916%27s%20Eagle%20Court%20of%20Honor%20for%20Tristan%20Marcus%20Bond.%0ADoors%201%3A00%20PM%20%C2%B7%20Ceremony%201%3A30%20PM%20%C2%B7%20Refreshments%202%3A30%20PM%0ARSVP%20and%20details%3A%20https%3A%2F%2Fbit.ly%2Ftristaneaglecourt&amp;location=Devonshire%20Cultural%20Center%20%28Skokie%20Devonshire%20Theatre%29%2C%204400%20Greenwood%20St%2C%20Skokie%2C%20IL%2060076&amp;ctz=America%2FChicago" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M1.5 6h13M5 1v3M11 1v3" stroke="currentColor" stroke-width="1.5"/></svg>Google</a>
+            <a class="cal-btn" href="/eagle-court-of-honor.ics" download><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M1.5 6h13M5 1v3M11 1v3" stroke="currentColor" stroke-width="1.5"/></svg>Apple / iPhone</a>
+            <a class="cal-btn" href="https://outlook.live.com/calendar/0/action/compose?path=%2Fcalendar%2Faction%2Fcompose&amp;rru=addevent&amp;subject=Tristan%27s%20Eagle%20Court%20of%20Honor&amp;startdt=2026-12-19T13%3A00%3A00-06%3A00&amp;enddt=2026-12-19T15%3A00%3A00-06%3A00&amp;body=Scout%20Troop%20916%27s%20Eagle%20Court%20of%20Honor%20for%20Tristan%20Marcus%20Bond.%0ADoors%201%3A00%20PM%20%C2%B7%20Ceremony%201%3A30%20PM%20%C2%B7%20Refreshments%202%3A30%20PM%0ARSVP%20and%20details%3A%20https%3A%2F%2Fbit.ly%2Ftristaneaglecourt&amp;location=Devonshire%20Cultural%20Center%20%28Skokie%20Devonshire%20Theatre%29%2C%204400%20Greenwood%20St%2C%20Skokie%2C%20IL%2060076&amp;allday=false" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M1.5 6h13M5 1v3M11 1v3" stroke="currentColor" stroke-width="1.5"/></svg>Outlook.com</a>
+            <a class="cal-btn" href="https://outlook.office.com/calendar/0/action/compose?path=%2Fcalendar%2Faction%2Fcompose&amp;rru=addevent&amp;subject=Tristan%27s%20Eagle%20Court%20of%20Honor&amp;startdt=2026-12-19T13%3A00%3A00-06%3A00&amp;enddt=2026-12-19T15%3A00%3A00-06%3A00&amp;body=Scout%20Troop%20916%27s%20Eagle%20Court%20of%20Honor%20for%20Tristan%20Marcus%20Bond.%0ADoors%201%3A00%20PM%20%C2%B7%20Ceremony%201%3A30%20PM%20%C2%B7%20Refreshments%202%3A30%20PM%0ARSVP%20and%20details%3A%20https%3A%2F%2Fbit.ly%2Ftristaneaglecourt&amp;location=Devonshire%20Cultural%20Center%20%28Skokie%20Devonshire%20Theatre%29%2C%204400%20Greenwood%20St%2C%20Skokie%2C%20IL%2060076&amp;allday=false" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M1.5 6h13M5 1v3M11 1v3" stroke="currentColor" stroke-width="1.5"/></svg>Outlook (work / school)</a>
+            <a class="cal-btn" href="/eagle-court-of-honor.ics" download><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M1.5 6h13M5 1v3M11 1v3" stroke="currentColor" stroke-width="1.5"/></svg>Other (.ics file)</a>
+          </div>
+        </div>
         <p>Need to change it? Send the form again with the same email.</p>
         <button class="link-btn" id="again" type="button">Update my RSVP</button>
       </div>
@@ -839,6 +864,7 @@
   prefill();
   if (saved.rsvp) {
     document.body.classList.add('returning');
+    document.getElementById('addCal').hidden = saved.rsvp.attending === 'no';
     if (saved.rsvp.attending === 'no') {
       document.getElementById('doneHead').textContent = 'Thanks for letting us know';
       document.getElementById('doneText').textContent =
@@ -981,6 +1007,7 @@
       .then(function (res) {
         if (!res.ok) throw new Error(res.body.error || 'Your RSVP didn’t go through. Please try again.');
         var n = total, upd = res.body.updated ? ' Your earlier RSVP was updated.' : '';
+        document.getElementById('addCal').hidden = attending !== 'yes';
         if (attending === 'no') {
           document.getElementById('doneHead').textContent = 'Thanks for letting us know';
           document.getElementById('doneText').textContent =
